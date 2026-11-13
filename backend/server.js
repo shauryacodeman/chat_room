@@ -126,6 +126,28 @@ io.on("connection", (socket) => {
     socket.to(room).emit("clearTyping");
   });
 
+  // 5. Handle Leaving a Room
+  socket.on("leaveRoom", async (data) => {
+    const { room, username } = data;
+
+    socket.leave(room);
+    console.log(`User ${username} (${socket.id}) left room: ${room}`);
+
+    if (socket.currentRoom === room) {
+      socket.currentRoom = null;
+    }
+
+    // Recalculate unique users for the room they just left
+    const socketsInRoom = await io.in(room).fetchSockets();
+    const uniqueUsers = new Set();
+
+    socketsInRoom.forEach((s) => {
+      if (s.username) uniqueUsers.add(s.username);
+    });
+
+    // Broadcast the new count to everyone still in the room
+    io.to(room).emit("roomUsersUpdate", uniqueUsers.size);
+  });
   // Handle Disconnect
   socket.on("disconnect", async () => {
     console.log(`User disconnected: ${socket.id}`);

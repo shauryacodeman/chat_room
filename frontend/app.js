@@ -87,6 +87,7 @@ loginBtn.addEventListener("click", async () => {
 });
 
 // --- Chat & Room Logic ---
+const leaveRoomBtn = document.getElementById("leave-room-btn");
 const createRoomBtn = document.getElementById("create-room-btn");
 const joinRoomBtn = document.getElementById("join-room-btn");
 const roomInput = document.getElementById("room-id-input"); // This fixes the error!
@@ -131,6 +132,19 @@ sendBtn.addEventListener("click", () => {
 
 messageInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") sendBtn.click();
+});
+
+leaveRoomBtn.addEventListener("click", () => {
+  if (!currentRoom) return;
+
+  // 1. Tell the server to remove this user from the room
+  socket.emit("leaveRoom", { room: currentRoom, username: currentUser });
+
+  // 2. Hide the chat interface and reset local variables
+  chatInterface.style.display = "none";
+  chatBox.innerHTML = "";
+  currentRoomTitle.textContent = "";
+  currentRoom = "";
 });
 
 // Helper function to render a message with an upvote button
